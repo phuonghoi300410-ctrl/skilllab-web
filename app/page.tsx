@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowserClient, type SkillRow } from "@/lib/supabase-browser";
+import Marketplace from "@/components/marketplace";
 import { ArrowRight, CheckCircle2, ChevronRight, CircleUserRound, Clock3, Download, Menu, Play, QrCode, Search, ShieldCheck, Sparkles, WandSparkles, X } from "lucide-react";
 
 type Skill = { name: string; category: string; description: string; price: string; tone: "yellow" | "pink" | "silver"; owned?: boolean; delivery: string };
@@ -31,7 +32,7 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const [saved, setSaved] = useState<string[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
+  const [selectedSkill, setSelectedSkill] = useState<Skill>(fallbackSkills[0]) as [Skill, (value: Skill | null) => void];
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return;
@@ -55,6 +56,7 @@ export default function Home() {
       });
   }, []);
   const filtered = useMemo(() => skills.filter((skill) => (category === "Tất cả" || skill.category === category) && skill.name.toLowerCase().includes(query.toLowerCase())), [category, query]);
+  return <Marketplace skills={skills} filtered={filtered} category={category} query={query} setCategory={setCategory} setQuery={setQuery} setSelectedSkill={setSelectedSkill} />;
   return <main className="min-h-screen overflow-hidden bg-[#070707] text-white">
     <header className="sticky top-0 z-30 border-b border-white/10 bg-[#070707]/85 backdrop-blur-xl"><div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 lg:px-8"><a href="#top" className="flex items-center gap-3"><span className="grid h-11 w-11 place-items-center rounded-xl bg-[#d8ff32] text-xl font-black text-black shadow-[0_0_28px_rgba(216,255,50,.28)]">S</span><span className="text-xl font-black tracking-[-.06em]">skill<span className="text-[#d8ff32]">lab</span></span></a><nav className="hidden items-center gap-9 text-sm font-semibold text-white/60 md:flex"><a href="#thu-vien" className="text-white">Skill</a><a href="#cach-lam">Cách dùng</a><a href="#cam-ket">Cam kết</a><a href="#don-hang">Đơn hàng của tôi</a></nav><div className="hidden items-center gap-3 md:flex"><a href="/admin" className="flex items-center gap-2 rounded-xl bg-[#d8ff32] px-4 py-3 text-sm font-black text-black"><CircleUserRound size={17} /> QUẢN TRỊ</a></div><button aria-label="Mở menu" onClick={() => setMenuOpen(!menuOpen)} className="rounded-lg p-2 md:hidden">{menuOpen ? <X /> : <Menu />}</button></div>{menuOpen && <div className="border-t border-white/10 bg-[#101010] px-5 py-4 md:hidden"><div className="flex flex-col gap-4 text-sm font-bold"><a href="#thu-vien">Skill</a><a href="#cach-lam">Cách dùng</a><a href="#don-hang">Đơn hàng của tôi</a><a href="/admin">Quản trị</a></div></div>}</header>
     <section id="top" className="relative border-b border-white/10 bg-[radial-gradient(circle_at_80%_30%,rgba(216,255,50,.18),transparent_28%),radial-gradient(circle_at_12%_70%,rgba(255,72,163,.13),transparent_22%)]">
