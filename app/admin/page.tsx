@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { getSupabaseBrowserClient, type SkillRow } from "@/lib/supabase-browser";
 import { Check, ChevronLeft, Eye, FileText, ImagePlus, LayoutDashboard, Link as LinkIcon, Pencil, Plus, Search, Settings, ShoppingBag, Trash2, Upload, X } from "lucide-react";
 
 type Skill = {
@@ -28,6 +29,27 @@ export default function AdminPage() {
   const [editing, setEditing] = useState<Skill | null>(null);
   const [form, setForm] = useState<Omit<Skill, "id">>(blankSkill);
   const [notice, setNotice] = useState("");
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return;
+
+    supabase
+      .from("skills")
+      .select("id, title, category, price_vnd, status, description, resource_url")
+      .order("created_at")
+      .then(({ data, error }) => {
+        if (error || !data?.length) return;
+        setSkills((data as Pick<SkillRow, "id" | "title" | "category" | "price_vnd" | "status" | "description" | "resource_url">[]).map((skill, index) => ({
+          id: index + 1,
+          title: skill.title,
+          category: skill.category,
+          price: `${new Intl.NumberFormat("vi-VN").format(skill.price_vnd)}đ`,
+          status: skill.status === "published" ? "Đang bán" : "Bản nháp",
+          description: skill.description,
+          resourceUrl: skill.resource_url ?? "",
+        })));
+      });
+  }, []);
   const visibleSkills = useMemo(() => skills.filter((skill) => skill.title.toLowerCase().includes(query.toLowerCase())), [skills, query]);
 
   const openNew = () => { setForm(blankSkill); setEditing({ id: 0, ...blankSkill }); };
